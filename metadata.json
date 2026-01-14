@@ -1,0 +1,7 @@
+{
+  "name": "VinaPod Studio - Xây dựng Podcast Talkshow AI",
+  "description": "Ứng dụng chuyên nghiệp giúp tạo podcast tiếng Việt từ tài liệu. Phân tích tài liệu thành series nhiều tập, tùy chỉnh phong cách nhân vật và chuyển đổi thành giọng nói AI tự nhiên.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
