@@ -38,7 +38,11 @@ export const analyzeDocument = async (content: string, host1: Host, host2: Host)
     model: 'gemini-3-pro-preview',
     contents: `Hãy phân tích tài liệu sau và thiết kế một series podcast thảo luận chuyên sâu.
     Chủ trì bởi: ${host1.name} và ${host2.name}.
-    Nội dung tài liệu: ${content.substring(0, 10000)}`,
+    YÊU CẦU QUAN TRỌNG: 
+    1. Chia tài liệu thành các tập thảo luận logic. 
+    2. CỐ GẮNG TẠO TỐI ĐA 10 TẬP (nếu nội dung tài liệu đủ phong phú).
+    3. Mỗi tập thảo luận chi tiết nhưng KHÔNG VƯỢT QUÁ 15 PHÚT.
+    Nội dung tài liệu: ${content.substring(0, 15000)}`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -54,7 +58,7 @@ export const analyzeDocument = async (content: string, host1: Host, host2: Host)
                 id: { type: Type.INTEGER },
                 title: { type: Type.STRING },
                 summary: { type: Type.STRING },
-                durationEstimate: { type: Type.STRING }
+                durationEstimate: { type: Type.STRING, description: "Thời lượng ước tính, tối đa 15:00" }
               },
               required: ["id", "title", "summary", "durationEstimate"]
             }
@@ -78,13 +82,15 @@ export const generateEpisodeScript = async (
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Viết kịch bản podcast chi tiết cho tập "${episode.title}" thuộc series "${seriesContext}".
-    Dựa trên tài liệu: ${docContent.substring(0, 8000)}.
+    Dựa trên tài liệu: ${docContent.substring(0, 10000)}.
     
-    Yêu cầu định dạng bảng kịch bản:
-    1. 'time': Mốc thời gian dự tính (ví dụ: "00:00", "00:15", "00:45").
-    2. 'speaker': Tên người nói (${host1.name} hoặc ${host2.name}).
-    3. 'text': Nội dung thoại bằng Tiếng Việt tự nhiên.
-    4. 'emotion': Cảm xúc hoặc hành động (ví dụ: "Hào hứng", "Suy tư", "Cười nhẹ", "Ngắt quãng").`,
+    Yêu cầu:
+    1. Thời lượng kịch bản khi nói ra phải nằm trong khoảng 10-15 phút.
+    2. Định dạng bảng kịch bản:
+       - 'time': Mốc thời gian (00:00, 00:15, ...).
+       - 'speaker': ${host1.name} hoặc ${host2.name}.
+       - 'text': Tiếng Việt tự nhiên, đối thoại sinh động.
+       - 'emotion': Trạng thái giọng nói.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -107,7 +113,7 @@ export const generateEpisodeScript = async (
 };
 
 export const generatePodcastAudio = async (script: ScriptLine[], host1: Host, host2: Host): Promise<string> => {
-  const prompt = `TTS kịch bản podcast:
+  const prompt = `Chuyển kịch bản podcast này thành âm thanh chất lượng cao. Đảm bảo tốc độ nói vừa phải, truyền cảm:
   ${script.map(line => `${line.speaker} [${line.emotion}]: ${line.text}`).join('\n')}`;
 
   const response = await ai.models.generateContent({
